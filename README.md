@@ -58,7 +58,7 @@ The archive contains `island-revival-0.1.1-art-audition.apk`. The APK is signed 
 
 The workflow validates versions and production assets, builds the web bundle, syncs Capacitor, builds the signed release APK, verifies that INTERNET permission is absent, prints the certificate identity, and uploads the artifact. It does not create a public Release.
 
-The latest verified Stage 0 revision run is recorded in `STATUS.md` after CI completes.
+Verified Stage 0 revision build: [Android Art Audition run #32476144423](https://github.com/Help-yourself-dvp/The-Island/actions/runs/32476144423).
 
 ## Assets
 

@@ -25,7 +25,7 @@ Review state: **REVISE STAGE 0 — awaiting second Honor Magic 8 Pro art review.
 | Screenshot PNG files | **WORKING** | Three authentic 1280×720 captures from the live scene are committed in `docs/screens/`; capture used headless Chromium + SwiftShader, not a fabricated image. |
 | Automated soak | **WORKING (non-render state harness)** | 120-second / 7,200-frame test passes with finite movement/camera state, valid GLBs and stable object count. Browser captures report no fatal runtime errors. |
 | Android wrapper | **WORKING** | Capacitor, sensor-landscape, fullscreen theme/cutout support, keep-awake, no sensitive permissions, stable alpha signing. |
-| GitHub Actions APK pipeline | **PENDING 0.1.1 RUN** | 0.1.0 pipeline was verified; revised artifact must pass after commit. |
+| GitHub Actions APK pipeline | **WORKING** | Run `32476144423` built, signed and permission-checked 0.1.1; artifact `island-revival-0.1.1-art-audition` uploaded. |
 | Honor Magic 8 Pro FPS/art | **NOT TESTED FOR 0.1.1** | Requires second device art review. |
 | Gameplay zones | **NOT IMPLEMENTED BY DESIGN** | No zone mechanics; diorama only. Stage 1 is blocked. |
 | Harvest/carry/delivery/build/worker/economy/save/story | **NOT IMPLEMENTED BY DESIGN** | Explicitly excluded from this revision. |
