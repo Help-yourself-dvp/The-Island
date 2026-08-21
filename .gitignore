@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.cache/
+.vite/
+coverage/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+.tmp/
+tmp/
+docs/screens/.browser-profile/
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/

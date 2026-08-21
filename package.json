@@ -1,0 +1,23 @@
+{
+  "name": "island-revival-art-audition",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "node tools/validate-version.mjs && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "assets:audit": "node tools/audit-assets.mjs",
+    "test:soak": "node tools/soak-test.mjs 120"
+  },
+  "dependencies": {
+    "@capacitor/android": "6.2.1",
+    "@capacitor/core": "6.2.1",
+    "three": "0.160.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "6.2.1",
+    "@gltf-transform/cli": "4.4.2",
+    "vite": "5.4.21"
+  }
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Остров снова жив</string>
+    <string name="title_activity_main">Остров снова жив</string>
+    <string name="package_name">com.helpyourself.islandrevival</string>
+    <string name="custom_url_scheme">com.helpyourself.islandrevival</string>
+</resources>

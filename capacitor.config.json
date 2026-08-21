@@ -1,0 +1,7 @@
+{
+  "appId": "com.helpyourself.islandrevival",
+  "appName": "Остров снова жив",
+  "webDir": "dist",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false }
+}
