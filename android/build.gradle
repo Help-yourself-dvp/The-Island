@@ -27,3 +27,18 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+// Keep the decisive Gradle cause visible in GitHub's check annotations even when
+// the hosted raw-log endpoint is unavailable to the development agent.
+gradle.buildFinished { result ->
+    if (result.failure != null && System.getenv('GITHUB_ACTIONS') == 'true') {
+        def causes = []
+        def current = result.failure
+        while (current != null && causes.size() < 8) {
+            if (current.message != null) causes.add(current.message.replace('\n', ' ').replace('\r', ' '))
+            current = current.cause
+        }
+        def message = causes.join(' | ').replace('%', '%25').replace('::', ':')
+        println "::error title=Android Gradle failure::${message}"
+    }
+}
