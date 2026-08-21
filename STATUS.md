@@ -30,6 +30,6 @@ Setting decision: **TIMELESS COZY MEDIEVAL ISLAND** — accepted for art directi
 | Screenshot PNG files | **WORKING** | Four authentic 1280×720 runtime captures committed; no screenshot-only geometry. Headless capture reports no fatal errors. |
 | Automated soak | **WORKING** | 120-second / 7,200-frame state harness validates finite movement/camera, stable counts, 18 GLBs and 4 WAVs. Browser regression confirms Idle→Run→Idle and partial-stick Walk transitions plus exactly 3 ambience loops. |
 | Android wrapper | **WORKING** | Capacitor, sensor-landscape, fullscreen/cutout, keep-awake, no sensitive permissions, stable alpha signing. |
-| GitHub Actions APK pipeline | **PENDING 0.1.2 RUN** | 0.1.1 pipeline verified; final Stage 0.5 artifact must pass after commit. |
+| GitHub Actions APK pipeline | **WORKING** | Run `32481479432` built, signed and permission-checked 0.1.2; artifact `island-revival-0.1.2-art-audition` uploaded. |
 | Gameplay zones | **NOT IMPLEMENTED BY DESIGN** | Diorama/locomotion/audio only. No zone mechanics. |
 | Chop/resources/workers/construction/bridge/farm/dialogue/save/quests | **NOT IMPLEMENTED BY DESIGN** | Explicitly excluded from Stage 0.5. |
