@@ -9,7 +9,7 @@ Current authorized scope is **Stage 0 only**. Do not implement harvesting, inven
 ## Architecture
 
 - `src/main.js` — one bootstrap and one guarded RAF loop; renderer, light, camera, diagnostics and player movement.
-- `src/world.js` — analytical ground height, terrain volume, path and water.
+- `src/world.js` — irregular land silhouette, analytical ground/shore height, terrain volume, path, stylized water and distant atmosphere.
 - `src/assets.js` — explicit production manifest, GLTF loading, bounds-based scale/grounding, scene placement and player animation.
 - `src/input.js` — one virtual joystick plus keyboard debug input.
 - `src/style.css` / `index.html` — minimal art-audition UI.
@@ -38,13 +38,13 @@ Current nature GLBs embed textures capped at 512×512. Character and props use a
 
 ## Scale and material conventions
 
-Player = 1.78 world units; buildings ~4.25; main trees 6–9. `fitAndPlace()` derives scale from world bounds and grounds the result with `groundHeight()`.
+Player = 1.78 world units; main workshop = 5.9; covered bay = 3.35; green trees = 6.2–7.6. `fitAndPlace()` derives scale from world bounds, stores each model's ground offset and grounds it with `groundHeight()`.
 
 Preserve authored material identity. Scene normalization only imposes matte roughness, low metalness, foliage alpha test/double side, ACES and consistent sunlight. Avoid replacing all assets with a global toon shader.
 
 ## Camera and input
 
-Camera is a bounded elevated third-person/soft-isometric view with two offsets. It follows the player and cannot go below terrain because offsets are fixed above it. Stage 0 needs no camera physics.
+Camera is a bounded 42° elevated third-person/soft-isometric view focused on one clearing. It follows the player and cannot go below terrain because its offset is fixed above it. The alternate angle/button is debug-only. Tree placement keeps the primary camera-player corridor clear, so Stage 0 needs no camera physics or foliage-fade system.
 
 Joystick up maps to camera-forward projected on XZ; right uses `forward × up`. Keyboard uses WASD/arrows. Player movement is constrained inside the island and has no physics/jump.
 

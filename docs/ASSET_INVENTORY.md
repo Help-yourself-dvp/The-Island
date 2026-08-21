@@ -6,7 +6,7 @@ Audit date: 2026-08-21. Source packs remain untouched under `models/`. Sizes bel
 
 | Pack | Author / provenance | License evidence | Source size | Contents and formats | Animation / rig | Mobile assessment | Decision / intended role |
 |---|---|---|---:|---|---|---|---|
-| Stylized Nature MegaKit (Standard) | Quaternius | `License_Standard.txt`: CC0 1.0 | 87.0 MiB; 182 files | 68 glTF models + BIN; 40 PNG; 4 previews. Trees, dead trees, pines, bushes, flowers, ferns, grass, mushrooms, pebbles and rocks. | None | Individual meshes average ~2.2k triangles (13–10,104); excellent after selecting models and resizing textures. | **ACCEPT.** Primary nature family. Eight selected production models. |
+| Stylized Nature MegaKit (Standard) | Quaternius | `License_Standard.txt`: CC0 1.0 | 87.0 MiB; 182 files | 68 glTF models + BIN; 40 PNG; 4 previews. Trees, dead trees, pines, bushes, flowers, ferns, grass, mushrooms, pebbles and rocks. | None | Individual meshes average ~2.2k triangles (13–10,104); excellent after selecting models and resizing textures. | **ACCEPT.** Primary nature family. Seven selected production models. |
 | Ultimate Fantasy RTS (Aug 2022) | Quaternius | `License.txt`: CC0 1.0 (header incorrectly says “Ultimate Platformer Pack”, but author/license are explicit) | 70.3 MiB; 268 files | 128 self-contained glTF models and 138 PNG renders: buildings, farms, docks, markets, props, resources, roads/walls. | None | Mostly light flat-shaded assets; average ~3.9k triangles, heaviest model 35,076. Selective use is mobile-safe. | **ACCEPT / selective.** One small house plus barrel, crate and log pile for audition. |
 | Farm Buildings (Sept 2018) ZIP | Quaternius | Included `License.txt`: CC0 1.0 | 3.52 MiB compressed / 10.90 MiB unpacked; 54 files | 13 models in Blend, FBX and OBJ/MTL; barn, sheds, fences, well, silo, windmills, chicken coop. | None | Light geometry, but conversion required and older style is simpler than the primary nature pack. | **MAYBE.** Valid future farm library; not included in Stage 0 runtime. |
 | Farm Animals ZIP | Quaternius | Included `License.txt`: CC0 1.0 | 6.75 MiB compressed / 15.39 MiB unpacked; 30 files | 7 animals in Blend, FBX and OBJ/MTL: cow, horse, llama, pig, pug, sheep, zebra. | No animation clips proven in audit; no reusable game rig established. | Geometry is modest, but static animals do not meet later gameplay needs without animation work. | **MAYBE.** Preserve for a later farm audition; not included now. |
@@ -52,8 +52,10 @@ Retrieved from GitHub on 2026-08-21 at the repository's `main` branch. Only `Rog
 Runtime files live only under `public/assets/`:
 
 - Player: `player-rogue.glb` — 76 clips; Stage 0 uses `Idle` and `Walking_A`.
-- Nature: `CommonTree_2`, `TwistedTree_2`, `Pine_3`, `Rock_Medium_1`, `Rock_Medium_2`, `Bush_Common`, `Bush_Common_Flowers`, `Fern_1`.
-- Building: `Houses_FirstAge_1_Level1`.
+- Nature: `CommonTree_2`, `CommonTree_4`, `Pine_1`, `Pine_3`, `Rock_Medium_1`, `Rock_Medium_2`, `Fern_1`.
+- Buildings: `Houses_FirstAge_1_Level1`, `Storage_FirstAge_Level1`.
 - Props: `Barrel`, `Crate`, `Logs`.
 
-Production assets total approximately **9.3 MiB** including license files. Nature textures were embedded into GLB and capped at 512×512. No Blend, FBX, OBJ, preview image, source archive or duplicate runtime format is shipped by Vite/Capacitor.
+`TwistedTree_2` was removed from the revised audition because its warm/red foliage breaks the first-zone palette. The original remains available in the untouched source pack.
+
+Production assets total is measured by `npm run assets:audit` (approximately **9–10 MiB**) including license files. Nature textures are embedded into GLB and capped at 512×512. No Blend, FBX, OBJ, preview image, source archive or duplicate runtime format is shipped by Vite/Capacitor.

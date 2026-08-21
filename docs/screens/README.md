@@ -1,11 +1,11 @@
-# Stage 0 screenshot capture
+# Stage 0 revision screenshots — 0.1.1
 
-The environment used for Stage 0 had no Chromium installation. A Playwright Chromium download was attempted on 2026-08-21 and failed at the browser CDN TLS connection. A second attempt using an npm-packaged headless Chromium reached the executable but the sandbox lacked required NSS/NSPR shared libraries. Therefore the views could not be captured honestly here.
+These PNG files are authentic captures from the same running Vite/Three.js scene at 1280×720:
 
-Deterministic views are implemented and can be opened as:
+- `art-audition.png` — `#shot-art`
+- `player-scale.png` — `#shot-player`
+- `building-style.png` — `#shot-building`
 
-- `/#shot-art` → save as `art-audition.png`
-- `/#shot-player` → save as `player-scale.png`
-- `/#shot-building` → save as `building-style.png`
+Capture date: 2026-08-21. The sandbox lacked a system browser, so a temporary headless Chromium 92 was run against the live local server with compiled NSPR libraries and SwiftShader. No scene geometry or state was created solely for screenshots. The three hooks freeze animation and select fixed cameras in the normal scene.
 
-In each shot mode, camera placement is fixed and animation time is frozen. Do not add hand-made or promotional images under these filenames; screenshots must come from the running build.
+The software-renderer FPS displayed by diagnostics during capture was approximately 1 FPS and is **not** a mobile performance measurement. Renderer diagnostics were stable for all captures: no fatal error, 23 textures, 36 geometries, and approximately 41–59 draw calls depending on camera visibility.

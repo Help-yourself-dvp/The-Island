@@ -4,7 +4,7 @@ A new offline-first Android game project. It is **not** a SKYFORGE sequel and do
 
 ## Current stage: Stage 0 — art audition
 
-Version `0.1.0` proves the visual foundation and delivery pipeline only:
+Version `0.1.1` proves the visual foundation and delivery pipeline only:
 
 - small composed island vignette using audited production assets;
 - animated player with touch joystick and desktop WASD/arrows;
@@ -52,13 +52,13 @@ Quality can be selected with `?quality=high` or `?quality=medium`; `?debug` show
 
 Every push to `arena/01a023b0-the-island` runs **Android Art Audition** in GitHub Actions. Open the run, select its successful `apk` job and download artifact:
 
-`island-revival-0.1.0-art-audition`
+`island-revival-0.1.1-art-audition`
 
-The archive contains `island-revival-0.1.0-art-audition.apk`. The APK is signed with the committed development-only PKCS#12 key so successive closed-alpha builds remain installable as updates. This key must never be used for a store release.
+The archive contains `island-revival-0.1.1-art-audition.apk`. The APK is signed with the committed development-only PKCS#12 key so successive closed-alpha builds remain installable as updates. This key must never be used for a store release.
 
 The workflow validates versions and production assets, builds the web bundle, syncs Capacitor, builds the signed release APK, verifies that INTERNET permission is absent, prints the certificate identity, and uploads the artifact. It does not create a public Release.
 
-Verified Stage 0 build: [Android Art Audition run #32473422666](https://github.com/Help-yourself-dvp/The-Island/actions/runs/32473422666).
+The latest verified Stage 0 revision run is recorded in `STATUS.md` after CI completes.
 
 ## Assets
 

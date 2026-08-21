@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as THREE from 'three';
+import { clampToLand } from '../src/world.js';
 
 const seconds = Math.max(60, Number(process.argv[2] || 120));
 const assetRoot = new URL('../public/assets', import.meta.url).pathname;
@@ -15,8 +16,8 @@ for (const file of glbs) {
   if (!json.scenes?.length) throw new Error(`GLB has no scene: ${file}`);
 }
 
-const player = new THREE.Vector3(-1.2, 0.3, 1.2);
-const camera = new THREE.Vector3(10, 10, 13);
+const player = new THREE.Vector3(-0.9, 0.8, 3.5);
+const camera = new THREE.Vector3(7, 7, 13);
 const target = new THREE.Vector3();
 const initialCount = glbs.length;
 const frames = seconds * 60;
@@ -24,10 +25,8 @@ for (let frame = 0; frame < frames; frame++) {
   const t = frame / 60;
   const input = new THREE.Vector3(Math.sin(t * 0.61), 0, Math.cos(t * 0.43)).normalize();
   player.addScaledVector(input, 3.05 / 60);
-  const r = Math.hypot(player.x, player.z), limit = 13.4;
-  if (r > limit) { player.x *= limit / r; player.z *= limit / r; }
-  player.y = 0.3 + 0.45 * Math.sin(player.x * 0.19) * Math.cos(player.z * 0.16) * Math.max(0, 1 - (r / 15.5) ** 2);
-  target.copy(player).add(new THREE.Vector3(10.8, 10.2, 13.4));
+  clampToLand(player, 2.5);
+  target.copy(player).add(new THREE.Vector3(7.8, 6.6, 9.7));
   camera.lerp(target, 1 - Math.exp(-(1 / 60) * 4.7));
   if (![...player, ...camera].every(Number.isFinite)) throw new Error(`Non-finite state at frame ${frame}`);
   if (glbs.length !== initialCount) throw new Error('Asset/object count changed during soak.');

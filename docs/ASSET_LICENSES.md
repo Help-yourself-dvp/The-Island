@@ -11,7 +11,7 @@ All Stage 0 production art is available offline and is permitted for commercial 
 - **Retrieved:** user-provided source, audited 2026-08-21
 - **Original formats:** glTF + external BIN/PNG
 - **Runtime format:** GLB with embedded textures, textures resized to at most 512×512
-- **Used:** CommonTree_2, TwistedTree_2, Pine_3, Rock_Medium_1, Rock_Medium_2, Bush_Common, Bush_Common_Flowers, Fern_1
+- **Used:** CommonTree_2, CommonTree_4, Pine_1, Pine_3, Rock_Medium_1, Rock_Medium_2, Fern_1
 - **Runtime license copy:** `public/assets/licenses/QUATERNIUS_STYLIZED_NATURE_LICENSE.txt`
 
 ## Quaternius — Ultimate Fantasy RTS (Aug 2022)
@@ -24,7 +24,7 @@ All Stage 0 production art is available offline and is permitted for commercial 
 - **Retrieved:** user-provided source, audited 2026-08-21
 - **Original format:** self-contained glTF
 - **Runtime format:** GLB
-- **Used:** Houses_FirstAge_1_Level1, Barrel, Crate, Logs
+- **Used:** Houses_FirstAge_1_Level1, Storage_FirstAge_Level1, Barrel, Crate, Logs
 - **Runtime license copy:** `public/assets/licenses/QUATERNIUS_ULTIMATE_FANTASY_RTS_LICENSE.txt`
 
 ## Kay Lousberg — KayKit Character Pack: Adventurers 1.0
