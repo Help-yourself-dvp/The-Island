@@ -100,7 +100,9 @@ const PATH_POINTS = [
   new THREE.Vector2(-2.0, 3.4),
   new THREE.Vector2(1.1, 1.0),
   new THREE.Vector2(3.8, -1.5),
-  new THREE.Vector2(6.5, -4.1)
+  new THREE.Vector2(6.5, -4.1),
+  new THREE.Vector2(8.8, -5.35),
+  new THREE.Vector2(11.2, -6.5)
 ];
 
 function pathGeometry(width = 1.12) {

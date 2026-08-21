@@ -1,6 +1,6 @@
 # Production asset licenses
 
-All Stage 0 production art is available offline and is permitted for commercial use. License copies are shipped in `public/assets/licenses/` and therefore remain coupled to the production files.
+All Stage 0.5 production art/audio is available offline and permitted for commercial use. External license copies are shipped in `public/assets/licenses/`; generated audio carries `public/assets/audio/LICENSE.txt`.
 
 ## Quaternius — Stylized Nature MegaKit (Standard)
 
@@ -11,7 +11,7 @@ All Stage 0 production art is available offline and is permitted for commercial 
 - **Retrieved:** user-provided source, audited 2026-08-21
 - **Original formats:** glTF + external BIN/PNG
 - **Runtime format:** GLB with embedded textures, textures resized to at most 512×512
-- **Used:** CommonTree_2, CommonTree_4, Pine_1, Pine_3, Rock_Medium_1, Rock_Medium_2, Fern_1
+- **Used:** CommonTree_2, CommonTree_4, Pine_1, Pine_3, Rock_Medium_1, Rock_Medium_2, Fern_1, Grass_Common_Short, Grass_Wispy_Short
 - **Runtime license copy:** `public/assets/licenses/QUATERNIUS_STYLIZED_NATURE_LICENSE.txt`
 
 ## Quaternius — Ultimate Fantasy RTS (Aug 2022)
@@ -24,7 +24,7 @@ All Stage 0 production art is available offline and is permitted for commercial 
 - **Retrieved:** user-provided source, audited 2026-08-21
 - **Original format:** self-contained glTF
 - **Runtime format:** GLB
-- **Used:** Houses_FirstAge_1_Level1, Storage_FirstAge_Level1, Barrel, Crate, Logs
+- **Used:** Houses_FirstAge_1_Level1, Storage_FirstAge_Level1, Windmill_FirstAge, Barrel, Crate, Logs
 - **Runtime license copy:** `public/assets/licenses/QUATERNIUS_ULTIMATE_FANTASY_RTS_LICENSE.txt`
 
 ## Kay Lousberg — KayKit Character Pack: Adventurers 1.0
@@ -36,12 +36,31 @@ All Stage 0 production art is available offline and is permitted for commercial 
 - **Evidence:** repository `LICENSE.txt`
 - **Retrieved:** 2026-08-21 from GitHub `main`
 - **Original/runtime format:** GLB with embedded PNG
-- **Used:** Rogue character mesh/rig and its bundled clips; weapon/crossbow/throwable nodes hidden at runtime
+- **Used:** Rogue character mesh/rig and its bundled clips; weapon/crossbow/throwable nodes hidden at runtime; `axe_1handed` as a static workshop tool prop
 - **Runtime license copy:** `public/assets/licenses/KAYKIT_ADVENTURERS_LICENSE.txt`
+
+## Quaternius — Farm Buildings (Sept 2018)
+
+- **Author:** Quaternius (`@Quaternius`)
+- **License:** CC0 1.0 Universal / Public Domain Dedication
+- **Evidence:** `Farm Buildings - Sept 2018/License.txt` inside the user-provided ZIP
+- **Retrieved:** user-provided source, audited 2026-08-21
+- **Original format:** OBJ/MTL (also supplied as FBX and Blend)
+- **Runtime format:** GLB converted with `obj2gltf`
+- **Used:** one `Fence` model, instanced as an incomplete/tilted abandoned route barrier
+- **Runtime license copy:** `public/assets/licenses/QUATERNIUS_FARM_BUILDINGS_LICENSE.txt`
+
+## Island Revival — generated ambience
+
+- **Author/source:** generated inside this repository by `tools/generate-audio.py`
+- **License:** CC0 1.0 Universal / Public Domain Dedication
+- **Method:** deterministic mathematical oscillators, envelopes and seeded pseudo-random noise; no third-party recordings or samples
+- **Runtime format:** mono 22.05 kHz PCM WAV
+- **Used:** `sea-loop.wav`, `wind-loop.wav`, `birds-loop.wav`, `footstep-earth.wav`
+- **Runtime license:** `public/assets/audio/LICENSE.txt`
 
 ## Audited but not used
 
-- Quaternius Farm Buildings: CC0; valid but not selected.
 - Quaternius Farm Animals: CC0; valid but not selected.
 - Quaternius Universal Animation Library: CC0; valid source library, but its mannequin is not a production player.
 - Buildings Pack (Aug 2017): no included license or reliable author evidence; production use is prohibited until provenance is established.

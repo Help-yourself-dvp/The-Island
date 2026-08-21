@@ -4,7 +4,7 @@ This is the active guide for the new project. Files under `reference/` describe 
 
 ## Guardrail
 
-Current authorized scope is **Stage 0 only**. Do not implement harvesting, inventory, sawmill restoration, workers, economy, story progression or later zones until the user explicitly accepts Stage 0 and requests Stage 1.
+Current authorized scope is **Stage 0.5 final art pass only**. Setting is `TIMELESS COZY MEDIEVAL ISLAND`. Do not implement harvesting, inventory, sawmill restoration, workers, economy, story progression or later zones until the user explicitly says `ACCEPT ART` and requests Stage 1. Concept/story documents 02/03 await a separate controlled setting revision after art acceptance.
 
 ## Architecture
 
@@ -12,6 +12,7 @@ Current authorized scope is **Stage 0 only**. Do not implement harvesting, inven
 - `src/world.js` — irregular land silhouette, analytical ground/shore height, terrain volume, path, stylized water and distant atmosphere.
 - `src/assets.js` — explicit production manifest, GLTF loading, bounds-based scale/grounding, scene placement and player animation.
 - `src/input.js` — one virtual joystick plus keyboard debug input.
+- `src/audio.js` — gesture-unlocked offline ambience and bounded footstep playback.
 - `src/style.css` / `index.html` — minimal art-audition UI.
 - `public/assets/` — only selected runtime art and retained licenses.
 - `models/` — user-provided source library; never import this directory from runtime.
@@ -50,7 +51,7 @@ Joystick up maps to camera-forward projected on XZ; right uses `forward × up`. 
 
 ## Player animations
 
-KayKit Rogue contains 76 authored clips. Stage 0 blends only `Idle` and `Walking_A`. `Knife`, `Crossbow` and `Throwable` named nodes are hidden. Do not expose combat assets or mechanics.
+KayKit Rogue contains 76 authored clips. Stage 0.5 cross-fades `Idle`, `Walking_A` and `Running_A` from joystick magnitude. `Knife`, `Crossbow` and `Throwable` character nodes are hidden. A separate static KayKit axe dresses the sawmill. Do not expose combat assets or mechanics.
 
 ## Quality
 
@@ -64,7 +65,11 @@ Quality is chosen at boot and frozen to avoid runtime render-target churn. Query
 
 Only `window.__GAME` is global. It exposes version, plain-object diagnostics, quality setter and screenshot hook names. Never expose Three.js scene objects globally.
 
-Shot hashes: `#shot-art`, `#shot-player`, `#shot-building`. They fix the camera and freeze animation. `?debug` shows a small once-per-second diagnostics card.
+Shot hashes: `#shot-art`, `#shot-player`, `#shot-sawmill`, `#shot-coast`. They fix the camera and freeze animation in the same real scene. `?debug` shows a small once-per-second diagnostics card.
+
+## Audio
+
+`tools/generate-audio.py` reproducibly creates the four CC0 WAV files; no external recordings are used. Audio loads locally, unlocks on first pointer/key gesture and suspends with the document. Keep exactly three ambient loops bounded; each transient footstep must disconnect on `ended`. Music is intentionally absent.
 
 ## Android
 

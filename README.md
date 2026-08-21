@@ -4,11 +4,12 @@ A new offline-first Android game project. It is **not** a SKYFORGE sequel and do
 
 ## Current stage: Stage 0 — art audition
 
-Version `0.1.1` proves the visual foundation and delivery pipeline only:
+Version `0.1.2` proves the visual foundation and delivery pipeline only:
 
 - small composed island vignette using audited production assets;
 - animated player with touch joystick and desktop WASD/arrows;
-- bounded elevated camera with two angles;
+- offline sea, wind, sparse birds and earth footsteps;
+- bounded elevated camera with debug-only alternate angle;
 - HIGH/MEDIUM quality profiles;
 - deterministic screenshot hooks and diagnostics;
 - offline Vite build in a Capacitor 6 Android wrapper;
@@ -45,20 +46,21 @@ Quality can be selected with `?quality=high` or `?quality=medium`; `?debug` show
 
 - `#shot-art`
 - `#shot-player`
-- `#shot-building`
+- `#shot-sawmill`
+- `#shot-coast`
 - `window.__GAME.getDiagnostics()` returns a plain, non-cyclic snapshot.
 
 ## Android APK
 
 Every push to `arena/01a023b0-the-island` runs **Android Art Audition** in GitHub Actions. Open the run, select its successful `apk` job and download artifact:
 
-`island-revival-0.1.1-art-audition`
+`island-revival-0.1.2-art-audition`
 
-The archive contains `island-revival-0.1.1-art-audition.apk`. The APK is signed with the committed development-only PKCS#12 key so successive closed-alpha builds remain installable as updates. This key must never be used for a store release.
+The archive contains `island-revival-0.1.2-art-audition.apk`. The APK is signed with the committed development-only PKCS#12 key so successive closed-alpha builds remain installable as updates. This key must never be used for a store release.
 
 The workflow validates versions and production assets, builds the web bundle, syncs Capacitor, builds the signed release APK, verifies that INTERNET permission is absent, prints the certificate identity, and uploads the artifact. It does not create a public Release.
 
-Verified Stage 0 revision build: [Android Art Audition run #32476144423](https://github.com/Help-yourself-dvp/The-Island/actions/runs/32476144423).
+The verified Stage 0.5 run is recorded in `STATUS.md` after CI completes.
 
 ## Assets
 

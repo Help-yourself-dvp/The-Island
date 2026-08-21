@@ -3,8 +3,9 @@ import * as THREE from 'three';
 import { createWorld, groundHeight, clampToLand } from './world.js';
 import { loadAssets, populateScene, createPlayer } from './assets.js';
 import { createInput } from './input.js';
+import { createAudioSystem } from './audio.js';
 
-const VERSION = '0.1.1';
+const VERSION = '0.1.2';
 const params = new URLSearchParams(location.search);
 const quality = (params.get('quality') || localStorage.getItem('island-quality') || (Math.min(innerWidth, innerHeight) < 600 ? 'MEDIUM' : 'HIGH')).toUpperCase() === 'MEDIUM' ? 'MEDIUM' : 'HIGH';
 const debugEnabled = params.has('debug');
@@ -48,6 +49,7 @@ scene.add(sun);
 const world = createWorld(scene, quality);
 const input = createInput();
 let player;
+let audioSystem;
 let cameraAngle = 0;
 let frameHandle = 0;
 let lastTime = performance.now();
@@ -70,25 +72,29 @@ function setAction(next) {
 
 function updatePlayer(dt) {
   const stick = input.read();
-  const moving = Math.hypot(stick.x, stick.y) > 0.08;
-  if (shotMode) { setAction(player.actions.idle); return; }
-  if (!moving) { setAction(player.actions.idle); return; }
+  const inputStrength = Math.hypot(stick.x, stick.y);
+  const moving = inputStrength > 0.08;
+  if (shotMode) { setAction(player.actions.idle); return false; }
+  if (!moving) { setAction(player.actions.idle); return false; }
   camera.getWorldDirection(forward); forward.y = 0; forward.normalize();
   right.crossVectors(forward, camera.up).normalize();
   move.copy(forward).multiplyScalar(stick.y).addScaledVector(right, stick.x).normalize();
-  player.root.position.addScaledVector(move, dt * 3.05);
+  const running = inputStrength > 0.78;
+  player.root.position.addScaledVector(move, dt * (running ? 3.5 : 2.15));
   clampToLand(player.root.position, 2.5);
   player.root.position.y += player.root.userData.groundOffset || 0;
   const targetYaw = Math.atan2(move.x, move.z);
   let delta = (targetYaw - player.root.rotation.y + Math.PI) % (Math.PI * 2) - Math.PI;
   player.root.rotation.y += delta * Math.min(1, dt * 10);
-  setAction(player.actions.walk);
+  setAction(running ? player.actions.run : player.actions.walk);
+  return true;
 }
 
 function updateCamera(dt, snap = false) {
   if (shotMode === 'shot-art') { camera.position.set(12.8, 9.0, 15.0); cameraTarget.set(0.2, 1.25, -1.4); }
   else if (shotMode === 'shot-player') { camera.position.copy(player.root.position).add(new THREE.Vector3(4.6, 3.7, 5.8)); cameraTarget.copy(player.root.position).add(new THREE.Vector3(0, 1.05, 0)); }
-  else if (shotMode === 'shot-building') { camera.position.set(14.8, 7.0, 7.6); cameraTarget.set(6.8, 2.25, -3.7); }
+  else if (shotMode === 'shot-sawmill') { camera.position.set(14.2, 6.4, 7.0); cameraTarget.set(6.9, 1.9, -3.9); }
+  else if (shotMode === 'shot-coast') { camera.position.set(1.8, 7.8, 14.5); cameraTarget.set(3.0, 0.55, -9.0); }
   else {
     desiredCamera.copy(player.root.position).add(cameraOffsets[cameraAngle]);
     camera.position.lerp(desiredCamera, snap ? 1 : 1 - Math.exp(-dt * 4.7));
@@ -99,12 +105,13 @@ function updateCamera(dt, snap = false) {
 
 function diagnostics() {
   return {
-    version: VERSION, stage: 0, quality, fps: Math.round(fps),
+    version: VERSION, stage: '0.5', quality, fps: Math.round(fps),
     drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
     textures: renderer.info.memory.textures, geometries: renderer.info.memory.geometries,
     sceneObjects: scene.children.length,
     playerPosition: player ? { x: +player.root.position.x.toFixed(2), y: +player.root.position.y.toFixed(2), z: +player.root.position.z.toFixed(2) } : null,
     animation: player?.active?._clip?.name || null,
+    audio: audioSystem?.getState() || { ready: false, started: false, state: 'loading', loops: 0 },
     shotMode, fatalError: fatalError?.message || null
   };
 }
@@ -113,7 +120,7 @@ function renderFrame(now) {
   frameHandle = requestAnimationFrame(renderFrame);
   try {
     const dt = Math.min((now - lastTime) / 1000, 0.05); lastTime = now; elapsed += dt;
-    updatePlayer(dt); player.mixer.update(dt); world.update(elapsed); updateCamera(dt);
+    const moving = updatePlayer(dt); player.mixer.update(dt); audioSystem?.update(dt, moving); world.update(elapsed); updateCamera(dt);
     renderer.render(scene, camera);
     fpsFrames += 1;
     if (now - fpsStamp >= 1000) {
@@ -128,7 +135,11 @@ function renderFrame(now) {
 
 async function boot() {
   try {
-    const library = await loadAssets((progress) => { loadingBar.style.width = `${Math.round(progress * 100)}%`; });
+    const [library, audio] = await Promise.all([
+      loadAssets((progress) => { loadingBar.style.width = `${Math.round(progress * 100)}%`; }),
+      createAudioSystem()
+    ]);
+    audioSystem = audio;
     populateScene(scene, library, quality);
     player = createPlayer(scene, library);
     player.root.position.y = groundHeight(player.root.position.x, player.root.position.z) + (player.root.userData.groundOffset || 0);
@@ -138,7 +149,7 @@ async function boot() {
       version: VERSION,
       getDiagnostics: diagnostics,
       setQuality(next) { const value = String(next).toUpperCase() === 'MEDIUM' ? 'MEDIUM' : 'HIGH'; localStorage.setItem('island-quality', value); location.reload(); },
-      screenshotHooks: ['#shot-art', '#shot-player', '#shot-building']
+      screenshotHooks: ['#shot-art', '#shot-player', '#shot-sawmill', '#shot-coast']
     });
     loading.classList.add('done');
     frameHandle = requestAnimationFrame(renderFrame);
@@ -151,6 +162,10 @@ async function boot() {
 
 cameraButton.addEventListener('click', () => { cameraAngle = (cameraAngle + 1) % cameraOffsets.length; });
 window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
-document.addEventListener('visibilitychange', () => { lastTime = performance.now(); if (document.hidden) input.reset(); });
+document.addEventListener('visibilitychange', () => {
+  lastTime = performance.now();
+  if (document.hidden) input.reset();
+  audioSystem?.setSuspended(document.hidden);
+});
 window.addEventListener('beforeunload', () => cancelAnimationFrame(frameHandle));
 boot();

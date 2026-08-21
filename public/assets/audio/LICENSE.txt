@@ -1,0 +1,15 @@
+ISLAND REVIVAL — PROCEDURALLY GENERATED STAGE 0.5 AUDIO
+
+Files:
+- sea-loop.wav
+- wind-loop.wav
+- birds-loop.wav
+- footstep-earth.wav
+
+Generated deterministically by tools/generate-audio.py from mathematical waveforms and seeded pseudo-random noise. No third-party recordings, samples, music, voices, or sound libraries were used.
+
+License: CC0 1.0 Universal (CC0 1.0)
+Public Domain Dedication
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Generated for the Island Revival / The-Island project on 2026-08-21.
