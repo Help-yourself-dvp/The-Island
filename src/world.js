@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 
-const BASE_X_RADIUS = 21.5;
-const BASE_Z_RADIUS = 17.5;
+const BASE_X_RADIUS = 52.0;
+const BASE_Z_RADIUS = 38.0;
 
 export function shoreRadius(angle) {
   const c = Math.cos(angle), s = Math.sin(angle);
   const ellipse = 1 / Math.sqrt((c * c) / (BASE_X_RADIUS * BASE_X_RADIUS) + (s * s) / (BASE_Z_RADIUS * BASE_Z_RADIUS));
-  const irregular = 1 + 0.065 * Math.sin(angle * 3 + 0.7) + 0.04 * Math.sin(angle * 5 - 1.1) + 0.025 * Math.sin(angle * 9);
+  const irregular = 1 + 0.075 * Math.sin(angle * 3 + 0.6) + 0.045 * Math.sin(angle * 5 - 1.1) + 0.028 * Math.sin(angle * 8 + 0.4);
   return ellipse * irregular;
 }
 
@@ -17,14 +17,16 @@ export function landFraction(x, z) {
 
 export function groundHeight(x, z) {
   const fraction = landFraction(x, z);
-  const forestRise = 0.8 * Math.exp(-((x + 8) ** 2 + (z + 1) ** 2) / 75);
-  const workshopRise = 0.24 * Math.exp(-((x - 7) ** 2 + (z + 4) ** 2) / 50);
-  const broad = 0.22 * Math.sin(x * 0.19 + 0.5) * Math.cos(z * 0.16 - 0.2);
-  const edgeDrop = THREE.MathUtils.smoothstep(fraction, 0.72, 1.0) * 0.7;
-  return 0.62 + forestRise + workshopRise + broad * Math.max(0, 1 - fraction * fraction) - edgeDrop;
+  const forestHill = 1.45 * Math.exp(-((x + 22) ** 2 + (z + 10) ** 2) / 340);
+  const northRidge = 0.95 * Math.exp(-((x + 6) ** 2 + (z + 22) ** 2) / 280);
+  const westRidge = 0.85 * Math.exp(-((x + 36) ** 2 + (z - 2) ** 2) / 240);
+  const sawmillRise = 0.42 * Math.exp(-((x - 15) ** 2 + (z - 1) ** 2) / 160);
+  const broad = 0.32 * Math.sin(x * 0.07 + 0.4) * Math.cos(z * 0.06 - 0.3);
+  const edgeDrop = THREE.MathUtils.smoothstep(fraction, 0.78, 1.0) * 1.15;
+  return 0.65 + forestHill + northRidge + westRidge + sawmillRise + broad * Math.max(0, 1 - fraction * fraction) - edgeDrop;
 }
 
-export function clampToLand(position, margin = 2.4) {
+export function clampToLand(position, margin = 2.8) {
   const angle = Math.atan2(position.z, position.x);
   const limit = shoreRadius(angle) - margin;
   const radius = Math.hypot(position.x, position.z);
@@ -35,63 +37,79 @@ export function clampToLand(position, margin = 2.4) {
   position.y = groundHeight(position.x, position.z);
 }
 
-export const PATH_POINTS = [
-  new THREE.Vector2(-8.8, 8.0),
-  new THREE.Vector2(-5.4, 5.8),
-  new THREE.Vector2(-2.0, 3.4),
-  new THREE.Vector2(1.1, 1.0),
-  new THREE.Vector2(3.8, -1.5),
-  new THREE.Vector2(6.5, -4.1),
-  new THREE.Vector2(8.8, -5.35),
-  new THREE.Vector2(11.2, -6.5)
+export const PATH_MAIN_POINTS = [
+  new THREE.Vector2(0, 24.0),
+  new THREE.Vector2(0.5, 14.0),
+  new THREE.Vector2(0.0, 4.0),
+  new THREE.Vector2(7.5, 1.5),
+  new THREE.Vector2(14.5, -0.5),
+  new THREE.Vector2(22.0, -3.5),
+  new THREE.Vector2(29.5, -7.5),
+  new THREE.Vector2(37.0, -11.5)
 ];
 
-const pathCurve = new THREE.SplineCurve(PATH_POINTS);
-const pathSamplePoints = pathCurve.getPoints(60);
+export const PATH_FOREST_POINTS = [
+  new THREE.Vector2(0.0, 4.0),
+  new THREE.Vector2(-10.0, 5.5),
+  new THREE.Vector2(-20.5, 3.0),
+  new THREE.Vector2(-30.0, -3.5),
+  new THREE.Vector2(-37.5, -12.0)
+];
+
+const mainCurve = new THREE.SplineCurve(PATH_MAIN_POINTS);
+const forestCurve = new THREE.SplineCurve(PATH_FOREST_POINTS);
+const mainSamples = mainCurve.getPoints(70);
+const forestSamples = forestCurve.getPoints(50);
 
 export function getSurfaceType(x, z) {
-  // Check workshop timber deck / yard zone
-  if (x >= 5.0 && x <= 10.5 && z >= -3.8 && z <= -1.8) return 'wood';
+  // 1. Check sawmill wooden platform / yard
+  if (x >= 9.5 && x <= 21.0 && z >= -5.0 && z <= 4.5) return 'wood';
 
-  // Check path proximity
+  // 2. Check path proximity (main road + forest trail)
   let minPathDistSq = Infinity;
-  for (let i = 0; i < pathSamplePoints.length; i++) {
-    const p = pathSamplePoints[i];
-    const dx = x - p.x;
-    const dz = z - p.y;
-    const dSq = dx * dx + dz * dz;
+  for (let i = 0; i < mainSamples.length; i++) {
+    const p = mainSamples[i];
+    const dSq = (x - p.x) ** 2 + (z - p.y) ** 2;
     if (dSq < minPathDistSq) minPathDistSq = dSq;
   }
-  if (minPathDistSq < 1.25 * 1.25) return 'dirt';
+  for (let i = 0; i < forestSamples.length; i++) {
+    const p = forestSamples[i];
+    const dSq = (x - p.x) ** 2 + (z - p.y) ** 2;
+    if (dSq < minPathDistSq) minPathDistSq = dSq;
+  }
+  if (minPathDistSq < 1.45 * 1.45) return 'dirt';
 
-  // Check coastal shoreline / rocky edge
+  // 3. Check rocky shoreline / bridge ravine
   const fraction = landFraction(x, z);
-  if (fraction > 0.86) return 'stone';
+  if (fraction > 0.88 || (x > 33.0 && z < -6.0)) return 'stone';
 
+  // 4. Default: forest floor / lush clearing
   return 'grass';
 }
 
-function terrainGeometry(radialSegments = 96, rings = 18) {
+function terrainGeometry(radialSegments = 128, rings = 28) {
   const positions = [];
   const colors = [];
   const indices = [];
   const color = new THREE.Color();
   positions.push(0, groundHeight(0, 0), 0);
-  color.setHex(0x668f47); colors.push(color.r, color.g, color.b);
+  color.setHex(0x668f47);
+  colors.push(color.r, color.g, color.b);
 
   for (let ring = 1; ring <= rings; ring++) {
     const fraction = ring / rings;
     for (let i = 0; i < radialSegments; i++) {
-      const angle = i / radialSegments * Math.PI * 2;
+      const angle = (i / radialSegments) * Math.PI * 2;
       const radius = shoreRadius(angle) * fraction;
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
       const y = groundHeight(x, z);
       positions.push(x, y, z);
-      const patch = Math.sin(x * 0.39 + z * 0.27) * 0.5 + 0.5;
-      if (fraction > 0.94) color.setHex(0xc3aa72);
-      else if (fraction > 0.84) color.setHex(patch > 0.55 ? 0xa98b5e : 0xb69b69);
-      else color.setHex(patch > 0.58 ? 0x739d50 : patch < 0.22 ? 0x557d40 : 0x638e46);
+
+      const patch = Math.sin(x * 0.21 + z * 0.17) * 0.5 + 0.5;
+      if (fraction > 0.94) color.setHex(0xc3aa72); // sand shore
+      else if (fraction > 0.85) color.setHex(patch > 0.55 ? 0xa98b5e : 0xb69b69); // soil transition
+      else color.setHex(patch > 0.60 ? 0x739d50 : patch < 0.22 ? 0x557d40 : 0x638e46); // rich grass
       colors.push(color.r, color.g, color.b);
     }
   }
@@ -109,13 +127,15 @@ function terrainGeometry(radialSegments = 96, rings = 18) {
     }
   }
 
+  // Sub-water skirt
   const edge = 1 + (rings - 1) * radialSegments;
   const lower = positions.length / 3;
   for (let i = 0; i < radialSegments; i++) {
-    const angle = i / radialSegments * Math.PI * 2;
-    const radius = shoreRadius(angle) * 0.93;
-    positions.push(Math.cos(angle) * radius, -2.7 - 0.25 * Math.sin(angle * 4), Math.sin(angle) * radius);
-    color.setHex(i % 4 === 0 ? 0x665446 : 0x79614a); colors.push(color.r, color.g, color.b);
+    const angle = (i / radialSegments) * Math.PI * 2;
+    const radius = shoreRadius(angle) * 0.94;
+    positions.push(Math.cos(angle) * radius, -3.2 - 0.35 * Math.sin(angle * 4), Math.sin(angle) * radius);
+    color.setHex(i % 4 === 0 ? 0x665446 : 0x79614a);
+    colors.push(color.r, color.g, color.b);
   }
   for (let i = 0; i < radialSegments; i++) {
     const next = (i + 1) % radialSegments;
@@ -130,11 +150,12 @@ function terrainGeometry(radialSegments = 96, rings = 18) {
   return geometry;
 }
 
-function pathGeometry(width = 1.12) {
-  const curve = new THREE.SplineCurve(PATH_POINTS);
-  const samples = curve.getPoints(54);
+function buildPathMesh(points, width = 1.25) {
+  const curve = new THREE.SplineCurve(points);
+  const samples = curve.getPoints(points.length * 9);
   const positions = [], colors = [], indices = [];
   const edgeColor = new THREE.Color(0x92724d), centerColor = new THREE.Color(0xc0a06a);
+
   for (let i = 0; i < samples.length; i++) {
     const p = samples[i];
     const previous = samples[Math.max(0, i - 1)], next = samples[Math.min(samples.length - 1, i + 1)];
@@ -143,7 +164,7 @@ function pathGeometry(width = 1.12) {
     for (const lane of [-1, 0, 1]) {
       const x = p.x + normal.x * width * lane;
       const z = p.y + normal.y * width * lane;
-      positions.push(x, groundHeight(x, z) + 0.035, z);
+      positions.push(x, groundHeight(x, z) + 0.038, z);
       const c = lane === 0 ? centerColor : edgeColor;
       colors.push(c.r, c.g, c.b);
     }
@@ -152,6 +173,7 @@ function pathGeometry(width = 1.12) {
       indices.push(a, a + 1, a + 3, a + 3, a + 1, a + 4, a + 1, a + 2, a + 4, a + 4, a + 2, a + 5);
     }
   }
+
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
@@ -175,7 +197,7 @@ function waterMaterial() {
       varying float vWave;
       void main() {
         vec3 p = position;
-        float w = sin(p.x * 0.16 + uTime * 0.75) * 0.07 + cos(p.y * 0.13 - uTime * 0.55) * 0.05;
+        float w = sin(p.x * 0.09 + uTime * 0.75) * 0.08 + cos(p.y * 0.08 - uTime * 0.55) * 0.06;
         p.z += w;
         vec4 world = modelMatrix * vec4(p, 1.0);
         vWorld = world.xyz;
@@ -194,17 +216,17 @@ function waterMaterial() {
       void main() {
         vec3 viewDir = normalize(cameraPosition - vWorld);
         vec3 normal = normalize(vec3(
-          0.06 * cos(vWorld.x * 0.16 + uTime * 0.75),
+          0.05 * cos(vWorld.x * 0.09 + uTime * 0.75),
           1.0,
-          -0.05 * sin(vWorld.z * 0.13 - uTime * 0.55)
+          -0.05 * sin(vWorld.z * 0.08 - uTime * 0.55)
         ));
         float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 2.2);
-        float bands = sin((vWorld.x + vWorld.z) * 0.22 + uTime * 0.7) * 0.5 + 0.5;
+        float bands = sin((vWorld.x + vWorld.z) * 0.14 + uTime * 0.7) * 0.5 + 0.5;
         vec3 color = mix(uDeep, uShallow, 0.28 + bands * 0.12 + vWave);
         color = mix(color, uSky, fresnel * 0.52);
         float glint = pow(max(dot(reflect(-uSun, normal), viewDir), 0.0), 64.0);
         color += vec3(1.0, 0.83, 0.55) * glint * 0.7;
-        float haze = smoothstep(45.0, 105.0, distance(cameraPosition, vWorld));
+        float haze = smoothstep(80.0, 180.0, distance(cameraPosition, vWorld));
         color = mix(color, uSky, haze * 0.72);
         gl_FragColor = vec4(color, 1.0);
       }
@@ -215,10 +237,14 @@ function waterMaterial() {
 function createDistantIsland(x, z, scale, color) {
   const group = new THREE.Group();
   const material = new THREE.MeshStandardMaterial({ color, roughness: 1, flatShading: true });
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(7, 9, 2.4, 9), material);
-  base.scale.set(scale, scale * 0.75, scale * 0.75); base.position.y = -0.35; group.add(base);
-  const hill = new THREE.Mesh(new THREE.ConeGeometry(5.8, 7.5, 8), material);
-  hill.scale.set(scale, scale * 0.62, scale * 0.78); hill.position.set(-1.2 * scale, 2.2 * scale, 0); group.add(hill);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(14, 18, 5.0, 9), material);
+  base.scale.set(scale, scale * 0.75, scale * 0.75);
+  base.position.y = -0.6;
+  group.add(base);
+  const hill = new THREE.Mesh(new THREE.ConeGeometry(12, 16, 8), material);
+  hill.scale.set(scale, scale * 0.62, scale * 0.78);
+  hill.position.set(-2.5 * scale, 4.5 * scale, 0);
+  group.add(hill);
   group.position.set(x, -0.8, z);
   return group;
 }
@@ -226,41 +252,53 @@ function createDistantIsland(x, z, scale, color) {
 function createCloud(x, y, z, scale) {
   const group = new THREE.Group();
   const material = new THREE.MeshBasicMaterial({ color: 0xddebe2, transparent: true, opacity: 0.72, depthWrite: false });
-  [[0, 0, 0, 2.8], [2.2, 0.1, 0, 2.1], [-2.1, -0.15, 0, 1.9], [0.5, 0.8, 0, 2.0]].forEach(([px, py, pz, r]) => {
+  [[0, 0, 0, 4.8], [3.8, 0.2, 0, 3.8], [-3.6, -0.25, 0, 3.4], [0.8, 1.4, 0, 3.6]].forEach(([px, py, pz, r]) => {
     const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1), material);
-    puff.position.set(px, py, pz); puff.scale.y = 0.55; group.add(puff);
+    puff.position.set(px, py, pz);
+    puff.scale.y = 0.55;
+    group.add(puff);
   });
-  group.position.set(x, y, z); group.scale.setScalar(scale); group.userData.baseX = x;
+  group.position.set(x, y, z);
+  group.scale.setScalar(scale);
+  group.userData.baseX = x;
   return group;
 }
 
 export function createWorld(scene, quality) {
   const terrain = new THREE.Mesh(
-    terrainGeometry(quality === 'HIGH' ? 96 : 72, quality === 'HIGH' ? 18 : 14),
+    terrainGeometry(quality === 'HIGH' ? 128 : 96, quality === 'HIGH' ? 28 : 20),
     new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.98, metalness: 0 })
   );
-  terrain.receiveShadow = true; scene.add(terrain);
+  terrain.receiveShadow = true;
+  scene.add(terrain);
 
-  const path = new THREE.Mesh(pathGeometry(), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
-  path.receiveShadow = true; scene.add(path);
+  const mainPath = new THREE.Mesh(buildPathMesh(PATH_MAIN_POINTS, 1.35), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
+  mainPath.receiveShadow = true;
+  scene.add(mainPath);
 
-  const water = new THREE.Mesh(new THREE.PlaneGeometry(180, 180, 48, 48), waterMaterial());
-  water.rotation.x = -Math.PI / 2; water.position.y = -0.55; scene.add(water);
+  const forestPath = new THREE.Mesh(buildPathMesh(PATH_FOREST_POINTS, 1.15), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
+  forestPath.receiveShadow = true;
+  scene.add(forestPath);
+
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(380, 380, 64, 64), waterMaterial());
+  water.rotation.x = -Math.PI / 2;
+  water.position.y = -0.55;
+  scene.add(water);
 
   const distant = new THREE.Group();
-  distant.add(createDistantIsland(-21, -48, 1.0, 0x628b75));
-  distant.add(createDistantIsland(8, -58, 1.35, 0x6c927e));
-  distant.add(createDistantIsland(31, -51, 0.72, 0x789b88));
-  distant.add(createCloud(-18, 17, -58, 1.1));
-  distant.add(createCloud(22, 20, -68, 0.8));
+  distant.add(createDistantIsland(-55, -95, 1.4, 0x628b75));
+  distant.add(createDistantIsland(25, -115, 1.8, 0x6c927e));
+  distant.add(createDistantIsland(75, -100, 1.1, 0x789b88));
+  distant.add(createCloud(-45, 28, -110, 1.4));
+  distant.add(createCloud(40, 32, -125, 1.1));
   scene.add(distant);
 
   return {
-    terrain, path, water, distant,
+    terrain, mainPath, forestPath, water, distant,
     update(time) {
       water.material.uniforms.uTime.value = time;
       distant.children.filter((child) => child.position.y > 5).forEach((cloud, index) => {
-        cloud.position.x = cloud.userData.baseX + Math.sin(time * 0.07 + index) * 1.4;
+        cloud.position.x = cloud.userData.baseX + Math.sin(time * 0.05 + index) * 2.2;
       });
     }
   };

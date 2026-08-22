@@ -46,10 +46,12 @@ Quality can be selected with `?quality=high` or `?quality=medium`; `?debug` show
 
 ## Screenshots and diagnostics
 
-- `#shot-art`
-- `#shot-player`
-- `#shot-sawmill`
-- `#shot-coast`
+- `#shot-zone1-start`
+- `#shot-zone1-forest`
+- `#shot-zone1-sawmill`
+- `#shot-zone1-future-path`
+- `#shot-zone1-overview`
+- `?colliders=1` enables 3D wireframe collision volumes.
 - `window.__GAME.getDiagnostics()` returns a plain, non-cyclic snapshot with collision count and surface type.
 
 ## Android APK

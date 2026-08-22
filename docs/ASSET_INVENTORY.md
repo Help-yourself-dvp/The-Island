@@ -77,9 +77,9 @@ Audit date: 2026-08-22. Source packs remain untouched under `models/`. Sizes bel
 
 Runtime assets live strictly under `public/assets/`:
 - **Characters:** `player-rogue.glb` (76 clips; `Idle`, `Walking_A`, `Running_A` actively used);
-- **Nature (9 models):** `CommonTree_2`, `CommonTree_4`, `Pine_1`, `Pine_3`, `Rock_Medium_1`, `Rock_Medium_2`, `Fern_1`, `Grass_Common_Short`, `Grass_Wispy_Short`;
+- **Nature (13 models):** `CommonTree_1`, `CommonTree_2`, `CommonTree_3`, `CommonTree_4`, `Pine_1`, `Pine_2`, `Pine_3`, `Bush_Common`, `Rock_Medium_1`, `Rock_Medium_2`, `Fern_1`, `Grass_Common_Short`, `Grass_Wispy_Short`;
 - **Buildings & Landmarks (3 models):** `Houses_FirstAge_1_Level1`, `Storage_FirstAge_Level1`, `Windmill_FirstAge`;
 - **Props (5 models):** `Barrel`, `Crate`, `Logs`, `Fence`, `Axe`;
 - **Audio (6 WAV files):** `sea-loop.wav`, `wind-loop.wav`, `bird-1.wav`, `bird-2.wav`, `bird-3.wav`, `footstep-earth.wav`.
 
-Total runtime bundle footprint: **~11.05 MiB** (verified by `npm run assets:audit`). All source formats (`.blend`, `.fbx`, `.obj`, `.png` source textures) are excluded from the distribution build.
+Total runtime bundle footprint: **~14.54 MiB** (22 GLB models + 6 WAV files, verified by `npm run assets:audit`). All source formats (`.blend`, `.fbx`, `.obj`, `.png` source textures) are excluded from the distribution build.

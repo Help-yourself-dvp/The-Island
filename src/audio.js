@@ -26,7 +26,6 @@ export async function createAudioSystem() {
   let master = null;
   let started = false;
   let unlocking = null;
-  let stepClock = 0;
   let footstepIndex = 0;
   let activeFootsteps = 0;
   let birdTimer = 7.0 + Math.random() * 6.0;
@@ -89,7 +88,7 @@ export async function createAudioSystem() {
       master.gain.value = 0.58;
       master.connect(context.destination);
 
-      // Only gentle ocean surf and soft atmospheric wind run continuously
+      // Clean atmospheric ambience: only non-tonal ocean surf and light wind
       startLoop(buffers.sea, 0.14);
       startLoop(buffers.wind, 0.05);
 
@@ -108,42 +107,30 @@ export async function createAudioSystem() {
 
   return {
     unlock,
-    update(dt, { moving = false, running = false, speed = 0, surface = 'grass' } = {}) {
+    update(dt) {
       if (!started || context.state !== 'running') return;
-      lastSurface = surface;
-
       // Update sparse bird ambiance
       birdTimer -= dt;
       if (birdTimer <= 0) {
         playBirdCall();
         scheduleNextBird();
       }
-
-      // Footstep cadence & locomotion check
-      // Do not play footsteps if player speed is negligible (e.g. blocked by obstacle or standing)
-      if (!moving || speed < 0.35) {
-        stepClock = Math.min(stepClock, 0.15);
-        return;
-      }
-
-      stepClock -= dt;
-      if (stepClock > 0) return;
-
-      const cadence = running ? 0.30 : 0.48;
-      const baseGain = running ? 0.125 : 0.070;
-      const pitchOffset = (footstepIndex++ % 2 ? 1 : -1) * 0.04 + (Math.random() * 0.06 - 0.03);
-      const baseRate = running ? (1.04 + pitchOffset) : (0.97 + pitchOffset);
-
-      stepClock = cadence;
+    },
+    triggerFootstep({ surface = 'grass', running = false } = {}) {
+      if (!started || context.state !== 'running') return;
+      lastSurface = surface;
 
       const profile = SURFACE_PROFILES[surface] || SURFACE_PROFILES.grass;
+      const baseGain = running ? 0.125 : 0.070;
+      const pitchOffset = (footstepIndex++ % 2 ? 1 : -1) * 0.03 + (Math.random() * 0.04 - 0.02);
+      const baseRate = running ? (1.05 + pitchOffset) : (0.97 + pitchOffset);
+
       const source = context.createBufferSource();
       const gain = context.createGain();
       source.buffer = buffers.footstep;
       source.playbackRate.value = Math.max(0.7, Math.min(1.4, baseRate * profile.rate));
       gain.gain.value = baseGain * profile.gain;
 
-      let chainEnd = gain;
       if (profile.filterType) {
         const filter = context.createBiquadFilter();
         filter.type = profile.filterType;

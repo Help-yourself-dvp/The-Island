@@ -11,7 +11,7 @@ All Stage 0.5 production art/audio is available offline and permitted for commer
 - **Retrieved:** user-provided source, audited 2026-08-21
 - **Original formats:** glTF + external BIN/PNG
 - **Runtime format:** GLB with embedded textures, textures resized to at most 512×512
-- **Used:** CommonTree_2, CommonTree_4, Pine_1, Pine_3, Rock_Medium_1, Rock_Medium_2, Fern_1, Grass_Common_Short, Grass_Wispy_Short
+- **Used:** CommonTree_1, CommonTree_2, CommonTree_3, CommonTree_4, Pine_1, Pine_2, Pine_3, Bush_Common, Rock_Medium_1, Rock_Medium_2, Fern_1, Grass_Common_Short, Grass_Wispy_Short
 - **Runtime license copy:** `public/assets/licenses/QUATERNIUS_STYLIZED_NATURE_LICENSE.txt`
 
 ## Quaternius — Ultimate Fantasy RTS (Aug 2022)
