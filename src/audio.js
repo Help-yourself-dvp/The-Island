@@ -1,8 +1,17 @@
 const AUDIO_FILES = {
   sea: '/assets/audio/sea-loop.wav',
   wind: '/assets/audio/wind-loop.wav',
-  birds: '/assets/audio/birds-loop.wav',
+  bird1: '/assets/audio/bird-1.wav',
+  bird2: '/assets/audio/bird-2.wav',
+  bird3: '/assets/audio/bird-3.wav',
   footstep: '/assets/audio/footstep-earth.wav'
+};
+
+const SURFACE_PROFILES = {
+  grass: { filterType: 'lowpass', filterFreq: 1800, gain: 0.85, rate: 0.95 },
+  dirt: { filterType: null, filterFreq: 0, gain: 1.0, rate: 1.02 },
+  stone: { filterType: 'highpass', filterFreq: 280, gain: 1.1, rate: 1.20 },
+  wood: { filterType: 'peaking', filterFreq: 680, gain: 1.15, rate: 0.88 }
 };
 
 export async function createAudioSystem() {
@@ -20,6 +29,9 @@ export async function createAudioSystem() {
   let stepClock = 0;
   let footstepIndex = 0;
   let activeFootsteps = 0;
+  let birdTimer = 7.0 + Math.random() * 6.0;
+  let sparseBirdsCount = 0;
+  let lastSurface = 'dirt';
   const loops = [];
 
   const startLoop = (buffer, level) => {
@@ -31,6 +43,37 @@ export async function createAudioSystem() {
     gain.gain.value = level;
     source.start();
     loops.push({ source, gain });
+  };
+
+  const playBirdCall = () => {
+    if (!started || context.state !== 'running') return;
+    const birdKeys = ['bird1', 'bird2', 'bird3'];
+    const chosen = birdKeys[Math.floor(Math.random() * birdKeys.length)];
+    const buffer = buffers[chosen];
+    if (!buffer) return;
+
+    const source = context.createBufferSource();
+    const gain = context.createGain();
+    source.buffer = buffer;
+    source.playbackRate.value = 0.92 + Math.random() * 0.16;
+    gain.gain.value = 0.065 + Math.random() * 0.045;
+
+    source.connect(gain).connect(master);
+    sparseBirdsCount += 1;
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+    };
+    source.start();
+  };
+
+  const scheduleNextBird = () => {
+    // 8-22 seconds normal, 25% chance of longer silence 22-38s
+    if (Math.random() < 0.25) {
+      birdTimer = 22.0 + Math.random() * 16.0;
+    } else {
+      birdTimer = 8.0 + Math.random() * 14.0;
+    }
   };
 
   const unlock = async () => {
@@ -45,9 +88,11 @@ export async function createAudioSystem() {
       master = context.createGain();
       master.gain.value = 0.58;
       master.connect(context.destination);
-      startLoop(buffers.sea, 0.16);
-      startLoop(buffers.wind, 0.075);
-      startLoop(buffers.birds, 0.11);
+
+      // Only gentle ocean surf and soft atmospheric wind run continuously
+      startLoop(buffers.sea, 0.14);
+      startLoop(buffers.wind, 0.05);
+
       await context.resume();
       started = true;
     })().catch((error) => {
@@ -63,20 +108,60 @@ export async function createAudioSystem() {
 
   return {
     unlock,
-    update(dt, moving) {
+    update(dt, { moving = false, running = false, speed = 0, surface = 'grass' } = {}) {
       if (!started || context.state !== 'running') return;
-      if (!moving) { stepClock = Math.min(stepClock, 0.18); return; }
+      lastSurface = surface;
+
+      // Update sparse bird ambiance
+      birdTimer -= dt;
+      if (birdTimer <= 0) {
+        playBirdCall();
+        scheduleNextBird();
+      }
+
+      // Footstep cadence & locomotion check
+      // Do not play footsteps if player speed is negligible (e.g. blocked by obstacle or standing)
+      if (!moving || speed < 0.35) {
+        stepClock = Math.min(stepClock, 0.15);
+        return;
+      }
+
       stepClock -= dt;
       if (stepClock > 0) return;
-      stepClock = 0.4;
+
+      const cadence = running ? 0.30 : 0.48;
+      const baseGain = running ? 0.125 : 0.070;
+      const pitchOffset = (footstepIndex++ % 2 ? 1 : -1) * 0.04 + (Math.random() * 0.06 - 0.03);
+      const baseRate = running ? (1.04 + pitchOffset) : (0.97 + pitchOffset);
+
+      stepClock = cadence;
+
+      const profile = SURFACE_PROFILES[surface] || SURFACE_PROFILES.grass;
       const source = context.createBufferSource();
       const gain = context.createGain();
       source.buffer = buffers.footstep;
-      source.playbackRate.value = footstepIndex++ % 2 ? 0.94 : 1.05;
-      gain.gain.value = 0.105;
-      source.connect(gain).connect(master);
+      source.playbackRate.value = Math.max(0.7, Math.min(1.4, baseRate * profile.rate));
+      gain.gain.value = baseGain * profile.gain;
+
+      let chainEnd = gain;
+      if (profile.filterType) {
+        const filter = context.createBiquadFilter();
+        filter.type = profile.filterType;
+        filter.frequency.value = profile.filterFreq;
+        if (profile.filterType === 'peaking') filter.Q.value = 1.2;
+        source.connect(filter);
+        filter.connect(gain);
+      } else {
+        source.connect(gain);
+      }
+
+      gain.connect(master);
       activeFootsteps += 1;
-      source.onended = () => { activeFootsteps -= 1; source.disconnect(); gain.disconnect(); };
+      source.onended = () => {
+        activeFootsteps -= 1;
+        source.disconnect();
+        gain.disconnect();
+      };
       source.start();
     },
     async setSuspended(suspended) {
@@ -85,7 +170,15 @@ export async function createAudioSystem() {
       else if (!suspended && context.state === 'suspended') await context.resume().catch(() => {});
     },
     getState() {
-      return { ready: Boolean(buffers), started, state: context?.state || 'locked', loops: loops.length, activeFootsteps };
+      return {
+        ready: Boolean(buffers),
+        started,
+        state: context?.state || 'locked',
+        loops: loops.length,
+        activeFootsteps,
+        sparseBirdsCount,
+        currentSurface: lastSurface
+      };
     }
   };
 }

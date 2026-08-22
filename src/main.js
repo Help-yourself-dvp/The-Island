@@ -1,11 +1,12 @@
 import './style.css';
 import * as THREE from 'three';
-import { createWorld, groundHeight, clampToLand } from './world.js';
+import { createWorld, groundHeight, clampToLand, getSurfaceType } from './world.js';
 import { loadAssets, populateScene, createPlayer } from './assets.js';
+import { CollisionSystem } from './collision.js';
 import { createInput } from './input.js';
 import { createAudioSystem } from './audio.js';
 
-const VERSION = '0.1.2';
+const VERSION = '0.1.3';
 const params = new URLSearchParams(location.search);
 const quality = (params.get('quality') || localStorage.getItem('island-quality') || (Math.min(innerWidth, innerHeight) < 600 ? 'MEDIUM' : 'HIGH')).toUpperCase() === 'MEDIUM' ? 'MEDIUM' : 'HIGH';
 const debugEnabled = params.has('debug');
@@ -47,6 +48,7 @@ sun.shadow.camera.near = 2; sun.shadow.camera.far = 55; sun.shadow.bias = -0.000
 scene.add(sun);
 
 const world = createWorld(scene, quality);
+const collisionSystem = new CollisionSystem();
 const input = createInput();
 let player;
 let audioSystem;
@@ -56,12 +58,18 @@ let lastTime = performance.now();
 let elapsed = 0;
 let fps = 0, fpsFrames = 0, fpsStamp = lastTime;
 let fatalError = null;
+let lastSurface = 'dirt';
+let lastSpeed = 0;
 const cameraOffsets = [new THREE.Vector3(7.8, 6.6, 9.7), new THREE.Vector3(-8.6, 6.2, 8.5)];
 const cameraTarget = new THREE.Vector3();
 const desiredCamera = new THREE.Vector3();
 const move = new THREE.Vector3();
 const forward = new THREE.Vector3();
 const right = new THREE.Vector3();
+
+const WALK_SPEED = 2.15;
+const RUN_SPEED = 3.5;
+const PLAYER_COLLISION_RADIUS = 0.38;
 
 function setAction(next) {
   if (player.active === next) return;
@@ -74,20 +82,67 @@ function updatePlayer(dt) {
   const stick = input.read();
   const inputStrength = Math.hypot(stick.x, stick.y);
   const moving = inputStrength > 0.08;
-  if (shotMode) { setAction(player.actions.idle); return false; }
-  if (!moving) { setAction(player.actions.idle); return false; }
-  camera.getWorldDirection(forward); forward.y = 0; forward.normalize();
+
+  if (shotMode) {
+    setAction(player.actions.idle);
+    lastSpeed = 0;
+    return { moving: false, running: false, speed: 0, surface: lastSurface };
+  }
+
+  if (!moving) {
+    setAction(player.actions.idle);
+    lastSpeed = 0;
+    lastSurface = getSurfaceType(player.root.position.x, player.root.position.z);
+    return { moving: false, running: false, speed: 0, surface: lastSurface };
+  }
+
+  camera.getWorldDirection(forward);
+  forward.y = 0;
+  forward.normalize();
   right.crossVectors(forward, camera.up).normalize();
   move.copy(forward).multiplyScalar(stick.y).addScaledVector(right, stick.x).normalize();
-  const running = inputStrength > 0.78;
-  player.root.position.addScaledVector(move, dt * (running ? 3.5 : 2.15));
-  clampToLand(player.root.position, 2.5);
-  player.root.position.y += player.root.userData.groundOffset || 0;
+
+  const running = inputStrength > 0.75;
+  const targetSpeed = running ? RUN_SPEED : WALK_SPEED;
+
+  const prevX = player.root.position.x;
+  const prevZ = player.root.position.z;
+
+  const candidate = {
+    x: prevX + move.x * dt * targetSpeed,
+    z: prevZ + move.z * dt * targetSpeed
+  };
+
+  // 1. Resolve obstacles collision (trees, rocks, buildings, fences)
+  collisionSystem.resolve(candidate, PLAYER_COLLISION_RADIUS, 3);
+
+  // 2. Resolve island boundary
+  clampToLand(candidate, 2.5);
+
+  // 3. Apply position
+  player.root.position.x = candidate.x;
+  player.root.position.z = candidate.z;
+  player.root.position.y = groundHeight(candidate.x, candidate.z) + (player.root.userData.groundOffset || 0);
+
+  // 4. Calculate actual movement displacement
+  const actualDisplacement = Math.hypot(player.root.position.x - prevX, player.root.position.z - prevZ);
+  lastSpeed = actualDisplacement / Math.max(1e-4, dt);
+
+  // 5. Rotate character towards input direction
   const targetYaw = Math.atan2(move.x, move.z);
   let delta = (targetYaw - player.root.rotation.y + Math.PI) % (Math.PI * 2) - Math.PI;
   player.root.rotation.y += delta * Math.min(1, dt * 10);
-  setAction(running ? player.actions.run : player.actions.walk);
-  return true;
+
+  // 6. Animation selection
+  if (lastSpeed < 0.25) {
+    // Player is running straight into a solid wall/tree
+    setAction(player.actions.walk);
+  } else {
+    setAction(running ? player.actions.run : player.actions.walk);
+  }
+
+  lastSurface = getSurfaceType(player.root.position.x, player.root.position.z);
+  return { moving: true, running, speed: lastSpeed, surface: lastSurface };
 }
 
 function updateCamera(dt, snap = false) {
@@ -105,12 +160,14 @@ function updateCamera(dt, snap = false) {
 
 function diagnostics() {
   return {
-    version: VERSION, stage: '0.5', quality, fps: Math.round(fps),
+    version: VERSION, stage: 'pre-production-foundation', quality, fps: Math.round(fps),
     drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
     textures: renderer.info.memory.textures, geometries: renderer.info.memory.geometries,
     sceneObjects: scene.children.length,
+    collidersCount: collisionSystem.count,
     playerPosition: player ? { x: +player.root.position.x.toFixed(2), y: +player.root.position.y.toFixed(2), z: +player.root.position.z.toFixed(2) } : null,
     animation: player?.active?._clip?.name || null,
+    movement: { speed: +lastSpeed.toFixed(2), surface: lastSurface },
     audio: audioSystem?.getState() || { ready: false, started: false, state: 'loading', loops: 0 },
     shotMode, fatalError: fatalError?.message || null
   };
@@ -119,17 +176,32 @@ function diagnostics() {
 function renderFrame(now) {
   frameHandle = requestAnimationFrame(renderFrame);
   try {
-    const dt = Math.min((now - lastTime) / 1000, 0.05); lastTime = now; elapsed += dt;
-    const moving = updatePlayer(dt); player.mixer.update(dt); audioSystem?.update(dt, moving); world.update(elapsed); updateCamera(dt);
+    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+    elapsed += dt;
+
+    const moveState = updatePlayer(dt);
+    player.mixer.update(dt);
+    audioSystem?.update(dt, moveState);
+    world.update(elapsed);
+    updateCamera(dt);
+
     renderer.render(scene, camera);
     fpsFrames += 1;
     if (now - fpsStamp >= 1000) {
-      fps = fpsFrames * 1000 / (now - fpsStamp); fpsFrames = 0; fpsStamp = now;
-      if (debugEnabled) { const d = diagnostics(); debugBox.textContent = `${d.quality} · ${d.fps} FPS\n${d.drawCalls} calls · ${d.triangles} tris\n${d.textures} tex · ${d.geometries} geo`; }
+      fps = fpsFrames * 1000 / (now - fpsStamp);
+      fpsFrames = 0;
+      fpsStamp = now;
+      if (debugEnabled) {
+        const d = diagnostics();
+        debugBox.textContent = `${d.quality} · ${d.fps} FPS · ${d.collidersCount} colliders\n${d.drawCalls} calls · ${d.triangles} tris\nsurf: ${d.movement.surface} · spd: ${d.movement.speed}`;
+      }
     }
   } catch (error) {
-    fatalError = error; console.error('[ISLAND render]', error);
-    errorBox.hidden = false; errorBox.textContent = `Ошибка кадра: ${error.message}`;
+    fatalError = error;
+    console.error('[ISLAND render]', error);
+    errorBox.hidden = false;
+    errorBox.textContent = `Ошибка кадра: ${error.message}`;
   }
 }
 
@@ -140,7 +212,7 @@ async function boot() {
       createAudioSystem()
     ]);
     audioSystem = audio;
-    populateScene(scene, library, quality);
+    populateScene(scene, library, quality, collisionSystem);
     player = createPlayer(scene, library);
     player.root.position.y = groundHeight(player.root.position.x, player.root.position.z) + (player.root.userData.groundOffset || 0);
     if (shotMode) { player.mixer.setTime(0.35); player.mixer.timeScale = 0; }
@@ -154,8 +226,10 @@ async function boot() {
     loading.classList.add('done');
     frameHandle = requestAnimationFrame(renderFrame);
   } catch (error) {
-    console.error('[ISLAND boot]', error); fatalError = error;
-    errorBox.hidden = false; errorBox.textContent = `Сцена не загрузилась: ${error.message}`;
+    console.error('[ISLAND boot]', error);
+    fatalError = error;
+    errorBox.hidden = false;
+    errorBox.textContent = `Сцена не загрузилась: ${error.message}`;
     loading.querySelector('span').textContent = 'не удалось загрузить сцену';
   }
 }

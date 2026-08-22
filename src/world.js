@@ -35,6 +35,42 @@ export function clampToLand(position, margin = 2.4) {
   position.y = groundHeight(position.x, position.z);
 }
 
+export const PATH_POINTS = [
+  new THREE.Vector2(-8.8, 8.0),
+  new THREE.Vector2(-5.4, 5.8),
+  new THREE.Vector2(-2.0, 3.4),
+  new THREE.Vector2(1.1, 1.0),
+  new THREE.Vector2(3.8, -1.5),
+  new THREE.Vector2(6.5, -4.1),
+  new THREE.Vector2(8.8, -5.35),
+  new THREE.Vector2(11.2, -6.5)
+];
+
+const pathCurve = new THREE.SplineCurve(PATH_POINTS);
+const pathSamplePoints = pathCurve.getPoints(60);
+
+export function getSurfaceType(x, z) {
+  // Check workshop timber deck / yard zone
+  if (x >= 5.0 && x <= 10.5 && z >= -3.8 && z <= -1.8) return 'wood';
+
+  // Check path proximity
+  let minPathDistSq = Infinity;
+  for (let i = 0; i < pathSamplePoints.length; i++) {
+    const p = pathSamplePoints[i];
+    const dx = x - p.x;
+    const dz = z - p.y;
+    const dSq = dx * dx + dz * dz;
+    if (dSq < minPathDistSq) minPathDistSq = dSq;
+  }
+  if (minPathDistSq < 1.25 * 1.25) return 'dirt';
+
+  // Check coastal shoreline / rocky edge
+  const fraction = landFraction(x, z);
+  if (fraction > 0.86) return 'stone';
+
+  return 'grass';
+}
+
 function terrainGeometry(radialSegments = 96, rings = 18) {
   const positions = [];
   const colors = [];
@@ -93,17 +129,6 @@ function terrainGeometry(radialSegments = 96, rings = 18) {
   geometry.computeVertexNormals();
   return geometry;
 }
-
-const PATH_POINTS = [
-  new THREE.Vector2(-8.8, 8.0),
-  new THREE.Vector2(-5.4, 5.8),
-  new THREE.Vector2(-2.0, 3.4),
-  new THREE.Vector2(1.1, 1.0),
-  new THREE.Vector2(3.8, -1.5),
-  new THREE.Vector2(6.5, -4.1),
-  new THREE.Vector2(8.8, -5.35),
-  new THREE.Vector2(11.2, -6.5)
-];
 
 function pathGeometry(width = 1.12) {
   const curve = new THREE.SplineCurve(PATH_POINTS);

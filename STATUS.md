@@ -1,35 +1,22 @@
-# Status — 0.1.2 Stage 0.5 final art pass
+# Status — 0.1.3 Pre-Production Foundation Lock
 
-Updated: 2026-08-21
+Updated: 2026-08-22
 
-Review state: **FINAL STAGE 0 ART REVIEW PENDING ON HONOR MAGIC 8 PRO.** Stage 1 remains blocked until explicit `ACCEPT ART`.
+Review state: **PRE-PRODUCTION FOUNDATION LOCK COMPLETED. READY FOR DEVICE CHECK ON HONOR MAGIC 8 PRO.** Stage 1 gameplay remains blocked until explicit `START STAGE 1`.
 
-Setting decision: **TIMELESS COZY MEDIEVAL ISLAND** — accepted for art direction. It is stylized fantasy-medieval without mandatory magic and not a historical simulator. Documents `02_КОНЦЕПЦИЯ_ИГРЫ.md` and `03_СЮЖЕТ_И_ТЕКСТЫ.md` require a later controlled setting revision after art acceptance; they were intentionally not rewritten in Stage 0.5.
+Setting decision: **TIMELESS COZY PRE-INDUSTRIAL / MEDIEVAL-INSPIRED ISLAND** — firmly locked across `02_КОНЦЕПЦИЯ_ИГРЫ.md`, `03_СЮЖЕТ_И_ТЕКСТЫ.md`, `docs/ART_DIRECTION.md` and `docs/WORLD_PLAN.md`.
 
-| Area | Status | Evidence / limitation |
+| Area | Status | Evidence / details |
 |---|---|---|
-| Input asset inventory | **WORKING** | Existing user packs re-audited selectively; no broad nature/model search. |
-| Production licenses | **WORKING** | Selected Quaternius/KayKit art and generated project audio are CC0 with runtime license copies. Unlicensed Buildings Pack remains rejected. |
-| Production asset selection | **WORKING** | Explicit GLB/audio-only runtime selection; source formats excluded. New dressing uses existing pack families: grass, fence, axe and distant windmill. |
-| Setting language | **ACCEPTED FOR FINAL REVIEW** | Wood, stone, hand tools, barrels, crates, fence, windmill and warm natural palette. Modern vehicles/asphalt/electric signage/plastic/modern architecture prohibited by ART_DIRECTION. |
-| Terrain / shoreline | **WORKING, DEVICE REVIEW REQUIRED** | Continuous irregular land, soft elevations and grass→soil→sand→water transition. Three restrained coastal rocks added. |
-| Forest edge / clearing | **WORKING, DEVICE REVIEW REQUIRED** | Green CommonTree/Pine clusters form one forest side; ferns, short grass and stones reclaim edges while central movement space remains open. |
-| Workshop storytelling | **WORKING, DEVICE REVIEW REQUIRED** | Slightly weathered workshop + covered bay + two log piles + crates + upright/fallen barrel + axe + partial/tilted fence + vegetation. Static art only. |
-| Path / future hint | **WORKING** | Packed-earth route begins around start space, passes the player/workshop and continues to an unused fenced/logged obstruction. No bridge or gameplay implemented. |
-| Future landmark | **WORKING, DEVICE REVIEW REQUIRED** | Existing `Windmill_FirstAge` appears as a non-interactive hazed distant silhouette. |
-| Water / background | **WORKING, DEVICE REVIEW REQUIRED** | Animated teal wave shader with Fresnel, variation, sun glint, shore transition, distant islands/clouds. |
-| Player choice | **FIXED FOR ART DIRECTION, DEVICE REVIEW REQUIRED** | KayKit Rogue at 1.78 units; character weapons hidden; Idle/Walking_A/Running_A cross-fade by input magnitude and face movement direction. |
-| Camera | **WORKING, DEVICE REVIEW REQUIRED** | 42° elevated follow camera preserves space and player readability; alternate angle/button remains debug-only. |
-| Lighting | **WORKING, DEVICE REVIEW REQUIRED** | Bright warm late-morning/afternoon sun, cool fill, ACES exposure 1.04, soft PCF shadows and haze. No heavy post effects. |
-| Audio audition | **WORKING, DEVICE REVIEW REQUIRED** | Offline generated sea/wind/birds loops and transient earth footsteps; unlock on first gesture, suspend/resume lifecycle and bounded sources. No music. |
-| UI | **WORKING** | Minimal Stage 0 title, visually light joystick with large touch area, no gameplay buttons/menu. |
-| HIGH/MEDIUM profiles | **WORKING** | Fixed boot-time DPR, 2048/1024 shadows and bounded dressing density. |
-| Offline web build | **WORKING** | Local bundle only; no CDN/runtime downloads. |
-| Diagnostics | **WORKING** | `window.__GAME.getDiagnostics()` includes renderer/player/audio state; one guarded RAF loop. |
-| Screenshot hooks | **WORKING** | `#shot-art`, `#shot-player`, `#shot-sawmill`, `#shot-coast` use one real scene with fixed cameras. |
-| Screenshot PNG files | **WORKING** | Four authentic 1280×720 runtime captures committed; no screenshot-only geometry. Headless capture reports no fatal errors. |
-| Automated soak | **WORKING** | 120-second / 7,200-frame state harness validates finite movement/camera, stable counts, 18 GLBs and 4 WAVs. Browser regression confirms Idle→Run→Idle and partial-stick Walk transitions plus exactly 3 ambience loops. |
-| Android wrapper | **WORKING** | Capacitor, sensor-landscape, fullscreen/cutout, keep-awake, no sensitive permissions, stable alpha signing. |
-| GitHub Actions APK pipeline | **WORKING** | Run `32481479432` built, signed and permission-checked 0.1.2; artifact `island-revival-0.1.2-art-audition` uploaded. |
-| Gameplay zones | **NOT IMPLEMENTED BY DESIGN** | Diorama/locomotion/audio only. No zone mechanics. |
-| Chop/resources/workers/construction/bridge/farm/dialogue/save/quests | **NOT IMPLEMENTED BY DESIGN** | Explicitly excluded from Stage 0.5. |
+| Collision framework | **WORKING** | Pure-math 2D horizontal collision system: player circle footprint (`r=0.38`), tree cylinders, rock circles, building oriented bounding boxes (OBBs) and fence segments. Player cannot pass through trees, rocks, workshop or fences. Boundary clamp preserved. |
+| Locomotion & animation sync | **WORKING** | Walk (`2.15 m/s` -> `Walking_A`) and Run (`3.50 m/s` -> `Running_A`) matched to eliminate foot sliding. Velocity gating detects blocked movement against obstacles. |
+| Footsteps & surface acoustics | **WORKING** | Cadence and volume differentiated: Walk is softer (~0.48s cadence), Run is crisper (~0.30s cadence). Dynamic surface detection (`grass`, `dirt`, `wood`, `stone`) modulates audio DSP filtering, gain, and rate. Footsteps pause when movement is blocked. |
+| Soundscape (hum & birds) | **WORKING** | Eliminated constant 92 Hz tonal hum from sea/wind. Sea and wind use non-tonal filtered pink noise. Cyclic 3-second bird loop replaced by sparse randomized one-shot calls (intervals 8–35s) with pitch/gain variation and natural pauses. |
+| World plan & scale | **WORKING** | `docs/WORLD_PLAN.md` created: 10 districts, ASCII map, relative scale (~5–8× larger than audition clearing), landmarks, unlocks, Zone 1 25–40 tree slot layout, multi-step sawmill progression, and visual cargo stack specification. |
+| Concept & story docs | **WORKING** | `02_КОНЦЕПЦИЯ_ИГРЫ.md` and `03_СЮЖЕТ_И_ТЕКСТЫ.md` updated: modern elements replaced by medieval equivalents (tavern, inn, carts, paved/dirt roads, small harbor), added **WHEAT → MILL → FLOUR → BAKERY/TAVERN** chain. |
+| Asset quality re-audit | **WORKING** | `docs/ASSET_INVENTORY.md` updated with `CURRENT`, `BETTER CANDIDATE`, `BACKGROUND ONLY`, and `REJECT` categories for all uploaded user packs. |
+| Production asset licenses | **WORKING** | Quaternius and KayKit models are CC0 with license copies in `public/assets/licenses/`; generated audio is CC0 under `public/assets/audio/LICENSE.txt`. |
+| Production asset bundle | **WORKING** | Total runtime assets ~11.05 MiB (18 GLB models, 6 WAV audio files, license texts). Source archives/formats excluded. |
+| Automated soak test | **WORKING** | 120-second / 7,200-frame test validates 18 GLBs, 6 WAVs, 16 obstacle colliders, collision penetration resolution, surface detection, finite player/camera state. |
+| Build & Android pipeline | **WORKING** | Offline Vite build passing, Capacitor Android build config validated, no sensitive permissions, version updated to `0.1.3`. |
+| Stage 1 gameplay (Chop/Collect/Economy/Workers/Bridge) | **NOT IMPLEMENTED BY DESIGN** | Explicitly blocked pending creative director verification of foundation. |

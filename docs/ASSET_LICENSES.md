@@ -54,9 +54,9 @@ All Stage 0.5 production art/audio is available offline and permitted for commer
 
 - **Author/source:** generated inside this repository by `tools/generate-audio.py`
 - **License:** CC0 1.0 Universal / Public Domain Dedication
-- **Method:** deterministic mathematical oscillators, envelopes and seeded pseudo-random noise; no third-party recordings or samples
+- **Method:** deterministic mathematical noise synthesis and filtered DSP; no third-party recordings or samples
 - **Runtime format:** mono 22.05 kHz PCM WAV
-- **Used:** `sea-loop.wav`, `wind-loop.wav`, `birds-loop.wav`, `footstep-earth.wav`
+- **Used:** `sea-loop.wav`, `wind-loop.wav`, `bird-1.wav`, `bird-2.wav`, `bird-3.wav`, `footstep-earth.wav`
 - **Runtime license:** `public/assets/audio/LICENSE.txt`
 
 ## Audited but not used
